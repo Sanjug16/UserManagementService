@@ -1,12 +1,16 @@
 package com.users.UserManagementService.controller;
 
+import com.users.UserManagementService.dto.UserRequest;
+import com.users.UserManagementService.dto.UserResponse;
 import com.users.UserManagementService.model.User;
 import com.users.UserManagementService.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
@@ -15,15 +19,19 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping
+    @GetMapping("/getUserByEmail")
+    public UserResponse getUserByEmail(@RequestParam String email) {
+        return userService.getUserByEmail(email);
+    }
+
+    @GetMapping("/getAllUsers")
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUserById(@PathVariable Long userId) {
-        User user = userService.getAUser(userId)
-                .orElse(null);
+        User user = userService.getAUser(userId).orElse(null);
 
         if (user == null) {
             return ResponseEntity.status(404).body("User not found with ID: " + userId);
@@ -32,14 +40,20 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping
-    public ResponseEntity<?> addUser(@Valid @RequestBody User newUser) {
-        return ResponseEntity.status(201).body(userService.addUser(newUser));
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRequest userRequest) {
+        if (userRequest.getRoleNames() == null || userRequest.getRoleNames().isEmpty()) {
+            return ResponseEntity.badRequest().body("Role names are required.");
+        }
+        return ResponseEntity.status(201).body(userService.addUser(userRequest.getUser(), userRequest.getRoleNames()));
     }
 
     @PutMapping
-    public ResponseEntity<?> updateUser(@Valid @RequestBody User editedUser) {
-        return ResponseEntity.ok(userService.updateUser(editedUser));
+    public ResponseEntity<?> updateUser(@Valid @RequestBody UserRequest userRequest) {
+        if (userRequest.getRoleNames() == null || userRequest.getRoleNames().isEmpty()) {
+            return ResponseEntity.badRequest().body("Role names are required.");
+        }
+        return ResponseEntity.ok(userService.updateUser(userRequest.getUser(), userRequest.getRoleNames()));
     }
 
     @DeleteMapping("/{userId}")
@@ -53,4 +67,3 @@ public class UserController {
         }
     }
 }
-
