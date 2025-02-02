@@ -38,7 +38,7 @@ public class UserService {
 //                .collect(Collectors.joining(", "));
         Set<String> roles = user.getRoles().stream().map((role)->role.getRoleName()).collect(Collectors.toSet());
 
-        return new UserResponse(user.getEmail(), roles, user.getName(), user.getPassword());
+        return new UserResponse( user.getUserId(),user.getEmail(), roles, user.getName(), user.getPassword());
     }
 
     public List<User> getAllUsers() {
